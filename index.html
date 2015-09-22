@@ -1,9 +1,36 @@
 <!DOCTYPE html>
 <html>
 
+<head>
+    <title>Github Homepage</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://fb.me/react-0.13.3.min.js"></script>
+    <script src="https://fb.me/react-with-addons-0.13.3.min.js"></script>
+    <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+</head>
+
 <body>
-    <h1>Hello World</h1>
-    <p>I'm hosted with GitHub Pages.</p>
+    <script type="text/javascript">
+        $.getJSON('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty', function(data) {
+            console.log(data);
+
+            for (var i = 0; i < 25; i++) {
+
+                $.getJSON('https://hacker-news.firebaseio.com/v0/item/' + data[i] + '.json?print=pretty', function(article) {
+                    console.log(article);
+                    $('#hnews').append('<a href="' + article.url + '" style="font-family:courier; margin:3em;">'+article.title + '</a> (' + article.url + ')<br/>');
+                });
+            }
+        });
+    </script>
+    <div style="display:inline-block">
+        <img src="http://finviz.com/chart.ashx?t=SPY&ty=c&ta=1&p=d&s=l" /><br />
+        <img src="http://finviz.com/chart.ashx?t=FB&ty=c&ta=1&p=d&s=l" />
+    </div>
+    <div id="hnews" style="display:inline-block">
+    </div>
+
 </body>
 
 </html>
