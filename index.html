@@ -8,28 +8,28 @@
     <script src="https://fb.me/react-0.13.3.min.js"></script>
     <script src="https://fb.me/react-with-addons-0.13.3.min.js"></script>
     <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+    <link rel="stylesheet" href="src/style.css" media="screen" title="no title" charset="utf-8">
 </head>
 
 <body>
-    <script type="text/javascript">
-        $.getJSON('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty', function(data) {
-            console.log(data);
-
-            for (var i = 0; i < 25; i++) {
-
-                $.getJSON('https://hacker-news.firebaseio.com/v0/item/' + data[i] + '.json?print=pretty', function(article) {
-                    console.log(article);
-                    $('#hnews').append('<a href="' + article.url + '" style="font-family:courier; margin:3em;">'+article.title + '</a> (' + article.url + ')<br/>');
-                });
-            }
-        });
-    </script>
-    <div style="display:inline-block">
-        <img src="http://finviz.com/chart.ashx?t=SPY&ty=c&ta=1&p=d&s=l" /><br />
+    <div id="finviz" style="display:inline-block">
+        <img src="http://finviz.com/chart.ashx?t=SPY&ty=c&ta=1&p=d&s=l" />
+        <br />
         <img src="http://finviz.com/chart.ashx?t=FB&ty=c&ta=1&p=d&s=l" />
     </div>
-    <div id="hnews" style="display:inline-block">
+    <div id="hacker_news" style="display:inline-block">
     </div>
+
+    <script type="text/javascript" src="src/services.js"></script>
+    <script type="text/javascript" src="src/filters.js"></script>
+    <script type="text/javascript" src="src/components.js"></script>
+
+    <script type="text/javascript">
+        // setInterval(function() {
+            components.hacker_news.topStories();
+            components.finviz.charts();
+        // }, 50000);
+    </script>
 
 </body>
 
