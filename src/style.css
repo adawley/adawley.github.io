@@ -1,8 +1,22 @@
+.article{
+    margin:0;
+    padding: 0;
+}
 .article-title{
     font-family: monospace;
-    font-size: smaller;
+    font-size: medium;
+    text-decoration: none;
+}
+.article-title:hover{
+    text-decoration: underline;
 }
 .article-url{
     font-size: small;
     color: #333;
+}
+.article-url a{
+    text-decoration: none;
+}
+.article-url a:hover{
+    text-decoration: underline;
 }
