@@ -1,6 +1,8 @@
 .article{
     margin:0;
     padding: 0;
+    padding-left: 0.3em;
+    margin-bottom: 0.2em;
 }
 .article-title{
     font-family: monospace;
@@ -19,4 +21,14 @@
 }
 .article-url a:hover{
     text-decoration: underline;
+}
+.component-block{
+    border: 1px solid black;
+    margin: 0.5em;
+}
+
+.component-block-title{
+    background-color: #add8e6;
+    padding:0.2em;
+    border-bottom: 1px solid #5d8896;
 }

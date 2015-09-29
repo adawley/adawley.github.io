@@ -12,12 +12,14 @@
 </head>
 
 <body>
-    <div id="finviz" style="display:inline-block">
-        <img src="http://finviz.com/chart.ashx?t=SPY&ty=c&ta=1&p=d&s=l" />
-        <br />
-        <img src="http://finviz.com/chart.ashx?t=FB&ty=c&ta=1&p=d&s=l" />
+    <div class="component-block">
+        <div id="finviz-charts">
+        </div>
     </div>
-    <div id="hacker_news" style="display:inline-block">
+
+    <div class="component-block">
+        <div id="hacker_news-topStories">
+        </div>
     </div>
 
     <script type="text/javascript" src="src/services.js"></script>
@@ -25,9 +27,50 @@
     <script type="text/javascript" src="src/components.js"></script>
 
     <script type="text/javascript">
+        'use strict';
+        $('.component-block').each(function(indx, elem){
+            var el = $(elem),
+                shrunk = true,
+                shrunkHeight = '1.4em',
+                firstChild = el.children().first(),
+                firstId = firstChild.attr('id'),
+                dotPath = firstId.replace('-','.'),
+                titleBlock = $('<div class="component-block-title">');
+
+            $('<button>+</button>')
+                .click(function(evt){
+                    if(shrunk){
+                        el.css('height','');
+                        evt.target.innerText = '-';
+                    } else {
+                        el.css('height',shrunkHeight);
+                        evt.target.innerText = '+';
+                    }
+                    shrunk = !shrunk;
+                })
+                .appendTo(titleBlock);
+
+            $('<button>Refresh</button>')
+                .click(function(evt){
+                    console.log(dotPath);
+                    _.get(components, dotPath)($(firstChild));
+                })
+                .appendTo(titleBlock);
+
+            $('<span>'+dotPath+'</span>')
+                .appendTo(titleBlock);
+
+            el.prepend(titleBlock);
+
+            shrunkHeight = titleBlock.outerHeight();
+            el.css({
+                height: shrunkHeight,
+                overflow: 'hidden'
+            });
+        });
         // setInterval(function() {
-            components.hacker_news.topStories();
-            components.finviz.charts();
+        components.hacker_news.topStories($('#hacker_news-topStories'));
+        components.finviz.charts($('#finviz-charts'));
         // }, 50000);
     </script>
 
