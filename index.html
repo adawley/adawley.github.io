@@ -68,10 +68,10 @@
                 overflow: 'hidden'
             });
         });
-        // setInterval(function() {
-        components.hacker_news.topStories($('#hacker_news-topStories'));
-        components.finviz.charts($('#finviz-charts'));
-        // }, 50000);
+        setTimeout(function() {
+            components.hacker_news.topStories($('#hacker_news-topStories'));
+            components.finviz.charts($('#finviz-charts'));
+        }, 1);
     </script>
 
 </body>

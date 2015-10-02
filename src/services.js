@@ -1,27 +1,51 @@
-var services = {
+(function() {
+    'use strict';
 
-	finviz: {
-		getChart: function(symbol){
-			var img = document.createElement('img');
-			img.src = "http://finviz.com/chart.ashx?t="+symbol+"&ty=c&ta=1&p=d&s=1";
+    function getJson(url, fn) {
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.onreadystatechange = function handleStateChange() {
+            if (httpRequest.readyState === 4) {
+                if (httpRequest.status === 200) {
+                    fn(JSON.parse(httpRequest.responseText));
+                } else {
+                    alert('There was a problem with the request.');
+                }
+            }
+        };
 
-			return img;
-		}
-	},
+        httpRequest.open('GET', url);
+        httpRequest.send();
+    }
 
-	hacker_news: {
-		getItem: function(itemId, fn){
-			fn = fn || function(){};
+    var services = {
 
-			if(isNaN(itemId)){
-				fn();
-			} else {
-				$.getJSON('https://hacker-news.firebaseio.com/v0/item/' + itemId + '.json?print=pretty', fn);
-			}
+        finviz: {
+            getChart: function(symbol) {
+                var img = document.createElement('img');
+                img.src = ['http://finviz.com/chart.ashx?t=', symbol, '&ty=c&ta=1&p=d&s=1'].join('');
 
-		},
-		getTopStories: function(fn){
-			$.getJSON('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty', fn);
-		}
-	}
-};
+                return img;
+            }
+        },
+
+        hacker_news: {
+            getItem: function(itemId, fn) {
+                fn = fn || function() {};
+
+                var url = ['https://hacker-news.firebaseio.com/v0/item/', itemId, '.json?print=pretty'].join('');
+
+                if (isNaN(itemId)) {
+                    fn();
+                } else {
+                    getJson(url, fn);
+                }
+
+            },
+            getTopStories: function(fn) {
+                getJson('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty', fn);
+            }
+        }
+    };
+
+    window.services = services;
+}());

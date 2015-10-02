@@ -1,7 +1,7 @@
-var filters = {
-	url: {
-		hostname: function(url){
-			return _(url.split('/')).filter().value()[1];
-		}
-	}
+window.filters = {
+    url: {
+        hostname: function(url) {
+            return !url ? '' : _(url.split('/')).filter().value()[1];
+        }
+    }
 };
