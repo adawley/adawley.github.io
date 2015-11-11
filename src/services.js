@@ -22,7 +22,7 @@
         finviz: {
             getChart: function(symbol) {
                 var img = document.createElement('img');
-                img.src = ['http://finviz.com/chart.ashx?t=', symbol, '&ty=c&ta=1&p=d&s=1'].join('');
+                img.src = ['http://finviz.com/chart.ashx?t=', symbol, '&ty=c&ta=1&p=d&s=1&zzz=',(new Date()).getTime()].join('');
 
                 return img;
             }

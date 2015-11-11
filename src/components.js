@@ -4,13 +4,13 @@
 
         finviz: {
             charts: function(el) {
-                var symbols = ['spy', 'fb', 'vglt'],
+                var symbols = ['spy', 'dia', 'fb', 'vglt'],
                     fv = services.finviz,
                     symbolBox;
 
                 if (el.children().length > 0) {
-                    console.log('kids');
-                    symbolBox = $(el.children().first());
+                    symbolBox = $(el.children().first())[0];
+                    symbols = symbolBox.value.split(',');
                 } else {
                     symbolBox = $('<input>').css('display','block');
                     symbolBox.val(symbols.join());
