@@ -52,6 +52,16 @@
                     }
                 });
             }
+        },
+
+        yahoo_finance: {
+            historical_data: function(){
+                var yf = services.yahoo.finance;
+
+                yf.query('SPY', function(data){
+                    console.log('historical_data: '+data);
+                });
+            }
         }
     };
 

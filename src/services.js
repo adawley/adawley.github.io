@@ -22,7 +22,7 @@
         finviz: {
             getChart: function(symbol) {
                 var img = document.createElement('img');
-                img.src = ['http://finviz.com/chart.ashx?t=', symbol, '&ty=c&ta=1&p=d&s=1&zzz=',(new Date()).getTime()].join('');
+                img.src = ['http://finviz.com/chart.ashx?t=', symbol, '&ty=c&ta=1&p=d&s=1&zzz=', (new Date()).getTime()].join('');
 
                 return img;
             }
@@ -44,7 +44,56 @@
             getTopStories: function(fn) {
                 getJson('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty', fn);
             }
+        },
+
+        yahoo: {
+            finance: {
+                historical_data: function(symbol){
+                    var endDate = Date.today(),
+                        startDate = Date(new Date().setDate(new Date().getDate()-5)),
+                        query = 'select * from yahoo.finance.historicaldata where symbol = "'+symbol+'" and startDate = "2009-09-11" and endDate = "2010-03-10"',
+                        url = [
+                            'http://query.yahooapis.com/v1/public/yql',
+                            '?q='+query,
+                            '&format=json',
+                            '&diagnostics=true',
+                            '&env=store://datatables.org/alltableswithkeys',
+                            '&callback=services.yahoo.finance.quote'
+                        ].join('');
+
+                        $.ajax({
+                            url: url,
+                            dataType: 'jsonp',
+                            jsonp: 'callback',
+                            jsonpCallback: 'services.yahoo.finance.quote'
+                        });
+                },
+                query: function(symbol, fn) {
+                    fn = fn || function() {};
+                    var quote = fn;
+
+                    var url = [
+                        'http://query.yahooapis.com/v1/public/yql',
+                        '?q=select * from yahoo.finance.quotes where symbol="'+symbol+'"',
+                        '&format=json',
+                        '&diagnostics=true',
+                        '&env=store://datatables.org/alltableswithkeys',
+                        '&callback=services.yahoo.finance.quote'
+                    ].join('');
+
+                    $.ajax({
+                        url: url,
+                        dataType: 'jsonp',
+                        jsonp: 'callback',
+                        jsonpCallback: 'services.yahoo.finance.quote'
+                    });
+                },
+                quote: function(data) {
+                    console.log(data.query.results);
+                }
+            }
         }
+
     };
 
     window.services = services;
