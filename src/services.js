@@ -1,4 +1,4 @@
-(function() {
+(function($, store) {
     'use strict';
 
     function getJson(url, fn) {
@@ -18,6 +18,17 @@
     }
 
     var services = {
+
+        charting:{
+            candlesticks: function(data){
+                var close = (data.open + data.high + data.low + data.close) / 4,
+                    high = Math.max(data.high, data.open, data.close),
+                    low = Math.min(data.low, data.open, data.close),
+                    open = (data[-1].open + data[-1].close) / 2;
+
+                return [open, high, low, close];
+            }
+        },
 
         finviz: {
             getChart: function(symbol) {
@@ -48,48 +59,54 @@
 
         yahoo: {
             finance: {
+                callbacks:{
+                    historical_data: function(data){
+                        console.log(data.query.results);
+                    },
+                    query: function(data){
+                        console.log(data.query.results);
+                    }
+                },
                 historical_data: function(symbol){
-                    var endDate = Date.today(),
-                        startDate = Date(new Date().setDate(new Date().getDate()-5)),
-                        query = 'select * from yahoo.finance.historicaldata where symbol = "'+symbol+'" and startDate = "2009-09-11" and endDate = "2010-03-10"',
+                    var endDate = Date.today().toString('yyyy-MM-dd'),
+                        startDate = Date.today().last().year().toString('yyyy-MM-dd'),
+                        callback = 'services.yahoo.finance.callbacks.historical_data',
+                        query = 'select * from yahoo.finance.historicaldata where symbol = "'+symbol+'" and startDate = "'+startDate+'" and endDate = "'+endDate+'"',
                         url = [
                             'http://query.yahooapis.com/v1/public/yql',
                             '?q='+query,
                             '&format=json',
                             '&diagnostics=true',
                             '&env=store://datatables.org/alltableswithkeys',
-                            '&callback=services.yahoo.finance.quote'
+                            '&callback=' + callback
                         ].join('');
-
-                        $.ajax({
-                            url: url,
-                            dataType: 'jsonp',
-                            jsonp: 'callback',
-                            jsonpCallback: 'services.yahoo.finance.quote'
-                        });
-                },
-                query: function(symbol, fn) {
-                    fn = fn || function() {};
-                    var quote = fn;
-
-                    var url = [
-                        'http://query.yahooapis.com/v1/public/yql',
-                        '?q=select * from yahoo.finance.quotes where symbol="'+symbol+'"',
-                        '&format=json',
-                        '&diagnostics=true',
-                        '&env=store://datatables.org/alltableswithkeys',
-                        '&callback=services.yahoo.finance.quote'
-                    ].join('');
 
                     $.ajax({
                         url: url,
                         dataType: 'jsonp',
                         jsonp: 'callback',
-                        jsonpCallback: 'services.yahoo.finance.quote'
+                        jsonpCallback: callback
                     });
                 },
-                quote: function(data) {
-                    console.log(data.query.results);
+                query: function(symbol, fn) {
+                    fn = fn || function() {};
+
+                    var callback = 'services.yahoo.finance.callbacks.query',
+                        url = [
+                            'http://query.yahooapis.com/v1/public/yql',
+                            '?q=select * from yahoo.finance.quotes where symbol="'+symbol+'"',
+                            '&format=json',
+                            '&diagnostics=true',
+                            '&env=store://datatables.org/alltableswithkeys',
+                            '&callback=' + callback
+                        ].join('');
+
+                    $.ajax({
+                        url: url,
+                        dataType: 'jsonp',
+                        jsonp: 'callback',
+                        jsonpCallback: callback
+                    });
                 }
             }
         }
@@ -97,4 +114,5 @@
     };
 
     window.services = services;
-}());
+
+}(window.jQuery, window.store));

@@ -63,6 +63,7 @@
                 });
             }
         }
+
     };
 
     window.components = components;
