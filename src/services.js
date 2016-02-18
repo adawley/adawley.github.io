@@ -61,7 +61,11 @@
             finance: {
                 callbacks:{
                     historical_data: function(data){
+                        console.log(data);
                         console.log(data.query.results);
+                        var results = data.query.results;
+
+                        store.stocks.save(results.quote);
                     },
                     query: function(data){
                         console.log(data.query.results);
