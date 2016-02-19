@@ -13,7 +13,7 @@
             save: function(data){
 
                 store.stocks._db.save({
-                    key: data[0].symbol,
+                    key: data[0].Symbol,
                     val: data
                 });
             }
