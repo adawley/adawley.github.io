@@ -20,13 +20,13 @@
     var services = {
 
         charting:{
-            candlesticks: function(data){
-                var close = (data.open + data.high + data.low + data.close) / 4,
-                    high = Math.max(data.high, data.open, data.close),
-                    low = Math.min(data.low, data.open, data.close),
-                    open = (data[-1].open + data[-1].close) / 2;
+            candlesticks: function(d){
+                var Close = (d.Open + d.High + d.Low + d.Close) / 4,
+                    High = Math.max(d.High, d.Open, d.Close),
+                    Low = Math.min(d.Low, d.Open, d.Close),
+                    Open = (d[-1].Open + d[-1].Close) / 2;
 
-                return [open, high, low, close];
+                return [Open, High, Low, Close];
             }
         },
 
