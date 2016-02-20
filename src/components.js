@@ -1,4 +1,4 @@
-(function(services, filters, _, $) {
+(function(store, services, filters, _, $) {
     'use strict';
     var components = {
 
@@ -55,16 +55,48 @@
         },
 
         yahoo_finance: {
-            historical_data: function(){
+
+            chart: {
+
+                ha: function(symbol, fn){
+                    fn = fn || function(){};
+
+                    store.stocks.get(symbol, function(data){
+                        fn(services.charting.candlesticks(data));
+                    });
+                },
+
+                trend: function(symbol, fn){
+                    fn = fn || function(){};
+
+                    components.yahoo_finance.chart.ha(symbol, function(data){
+                        services.analytics.simple_trend(data, fn);
+                    });
+                }
+
+            },
+
+            historical_data: function(symbol){
                 var yf = services.yahoo.finance;
 
-                yf.query('SPY', function(data){
+                yf.query(symbol, function(data){
                     console.log('historical_data: '+data);
                 });
+            },
+
+            test: {
+                trend: function(){
+                    components.yahoo_finance.chart.trend('spy', function(data){
+                        data.forEach(function(val){
+                            console.log(new Date(val.date)+': '+val.trend);
+                        });
+                    });
+                }
             }
         }
 
     };
 
     window.components = components;
-}(window.services, window.filters, window._, window.$));
+
+}(window.store, window.services, window.filters, window._, window.$));

@@ -10,11 +10,26 @@
                     console.log(data);
                 });
             },
-            save: function(data){
-
+            Struct: function(){
+                this.adj_close = 0.0;
+                this.date = new Date();
+                this.open = 0.0;
+                this.high = 0.0;
+                this.low = 0.0;
+                this.close  = 0.0;
+                this.volume = 0;
+            },
+            save: function(symbol, data, fn){
                 store.stocks._db.save({
-                    key: data[0].Symbol,
+                    key: symbol,
                     val: data
+                }, fn);
+            },
+            get: function(symbol, fn){
+                fn = fn || function(){};
+                store.stocks._db.get(symbol, function(data){
+                    // just send back the array of data instead of the obj
+                    fn(data.val);
                 });
             }
         }

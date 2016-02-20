@@ -19,14 +19,40 @@
 
     var services = {
 
-        charting:{
-            candlesticks: function(d){
-                var Close = (d.Open + d.High + d.Low + d.Close) / 4,
-                    High = Math.max(d.High, d.Open, d.Close),
-                    Low = Math.min(d.Low, d.Open, d.Close),
-                    Open = (d[-1].Open + d[-1].Close) / 2;
+        analytics:{
+            simple_trend: function(data, fn){
+                fn = fn || function(){};
+                var ret = [];
 
-                return [Open, High, Low, Close];
+                data.forEach(function(d){
+                    ret.push({
+                        date: d.date,
+                        trend: ((d.open > d.close) ? -1 : 1)
+                    });
+                });
+
+                fn(ret);
+            }
+        },
+
+        charting:{
+            candlesticks: function(data){
+                var ret = [], d, retIndx;
+
+                for (var i = data.length - 1; i >= 0; i--) {
+                    d = data[i];
+                    retIndx = ret.length;
+
+                    ret.push({
+                        close: (d.open + d.high + d.low + d.close) / 4,
+                        high: Math.max(d.high, d.open, d.close),
+                        low: Math.min(d.low, d.open, d.close),
+                        open: retIndx > 1 ? (ret[retIndx-1].open + ret[retIndx-1].close) / 2 : d.open,
+                        date: d.date
+                    });
+                }
+
+                return ret;
             }
         },
 
@@ -61,11 +87,24 @@
             finance: {
                 callbacks:{
                     historical_data: function(data){
-                        console.log(data);
-                        console.log(data.query.results);
-                        var results = data.query.results;
+                        var quote = data.query.results.quote,
+                            symbol = quote[0].Symbol,
+                            d = [];
 
-                        store.stocks.save(results.quote);
+                        quote.forEach(function(val){
+                            d.push({
+                                adj_close: parseFloat(val.Adj_Close),
+                                close: parseFloat(val.Close),
+                                date: new Date(val.Date + ' 12:00:00').getTime(),
+                                high: parseFloat(val.High),
+                                low: parseFloat(val.Low),
+                                open: parseFloat(val.Open),
+                                volume: parseInt(val.Volume)
+                            });
+                        });
+
+                        store.stocks.save(symbol, d);
+                        console.log('yahoo.finance.callbacks.historical_data: save complete');
                     },
                     query: function(data){
                         console.log(data.query.results);
