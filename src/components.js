@@ -66,6 +66,46 @@
                     });
                 },
 
+                sma: function(symbol, period, fn){
+                    fn = fn || function(){};
+
+                    // todo(rob) move this somewhere else
+                    function simple_moving_averager(period) {
+                        var nums = [];
+                        return function(num) {
+                            nums.push(num);
+                            if (nums.length > period){
+                                nums.splice(0,1);  // remove the first element of the array
+                            }
+                            var sum = 0;
+                            for (var i in nums){
+                                sum += nums[i];
+                            }
+                            var n = period;
+                            if (nums.length < period){
+                                n = nums.length;
+                            }
+                            return(sum/n);
+                        };
+                    }
+
+                    // setup the sma
+                    var sma = simple_moving_averager(period),
+                        d,
+                        ret = [];
+
+                    // get the symbol data
+                    store.stocks.get(symbol, function(data){
+                        for (var i = data.length - 1; i >= 0; i--) {
+                            d = data[i];
+                            ret.push({date: d.date, sma: sma(d.adj_close)});
+                        }
+
+                        fn(ret);
+                    });
+
+                },
+
                 trend: function(symbol, fn){
                     fn = fn || function(){};
 
