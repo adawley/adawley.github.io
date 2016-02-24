@@ -10,6 +10,14 @@
     <script src="https://fb.me/react-0.13.3.min.js"></script>
     <script src="https://fb.me/react-with-addons-0.13.3.min.js"></script>
     <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.dateAxisRenderer.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.categoryAxisRenderer.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.ohlcRenderer.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.highlighter.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.cursor.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.css" />
     <link rel="stylesheet" href="src/style.css" media="screen" title="no title" charset="utf-8">
 </head>
 
@@ -23,6 +31,8 @@
         <div id="hacker_news-topStories">
         </div>
     </div>
+
+    <div id="chartdiv" style="height:400px;width:1300px; "></div>
 
     <script type="text/javascript" src="src/stores.js"></script>
     <script type="text/javascript" src="src/services.js"></script>

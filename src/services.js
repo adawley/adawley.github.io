@@ -37,17 +37,26 @@
 
         charting:{
             candlesticks: function(data){
-                var ret = [], d, retIndx;
+                var ret = [], d, retIndx, haOpen, haHigh, haLow, haClose;
 
                 for (var i = data.length - 1; i >= 0; i--) {
                     d = data[i];
                     retIndx = ret.length;
 
+                    if(d.close !== d.adj_close){
+                        console.log('close mismatch: '+(new Date(d.date)),d);
+                    }
+
+                    haClose = (d.open + d.high + d.low + d.close) / 4;
+                    haOpen = retIndx > 1 ? (ret[retIndx-1].open + ret[retIndx-1].close) / 2 : d.open;
+                    haHigh = Math.max(d.high, haOpen, haClose);
+                    haLow = Math.min(d.low, haOpen, haClose);
+
                     ret.push({
-                        close: (d.open + d.high + d.low + d.close) / 4,
-                        high: Math.max(d.high, d.open, d.close),
-                        low: Math.min(d.low, d.open, d.close),
-                        open: retIndx > 1 ? (ret[retIndx-1].open + ret[retIndx-1].close) / 2 : d.open,
+                        close: haClose,
+                        high: haHigh,
+                        low: haLow,
+                        open: haOpen,
                         date: d.date
                     });
                 }

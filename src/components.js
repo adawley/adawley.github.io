@@ -58,6 +58,83 @@
 
             chart: {
 
+                _simple_moving_averager: function (period) {
+                    var nums = [];
+                    return function(num) {
+                        nums.push(num);
+                        if (nums.length > period){
+                            nums.splice(0,1);  // remove the first element of the array
+                        }
+                        var sum = 0;
+                        for (var i in nums){
+                            sum += nums[i];
+                        }
+                        var n = period;
+                        if (nums.length < period){
+                            n = nums.length;
+                        }
+                        return(sum/n);
+                    };
+                },
+
+                plot: function(divId, data){
+                    var ohlc = [],
+                        ticks = [],
+                        sma = [],
+                        sma5 = components.yahoo_finance.chart._simple_moving_averager(5),
+                        d, i, date;
+
+                    console.log(data);
+
+                    for (i = 0; i < data.length; i++) {
+                        d = data[i];
+
+                        if(i%5 === 0){
+                            date = (new Date(d.date)).toString('MM/dd/yyyy');
+                        } else {
+                            date = '';
+                        }
+
+                        ticks.push(date);
+
+                        ohlc.push([i, d.open, d.high, d.low, d.close]);
+                        sma.push([i,sma5(d.close)]);
+                    }
+
+                    $.jqplot('chartdiv',[ohlc, sma],{
+                        title: 'Chart',
+                        axesDefaults:{},
+                        axes: {
+                            xaxis: {
+                                renderer:$.jqplot.CategoryAxisRenderer,
+                                ticks:ticks
+                            },
+                            yaxis: {
+                                tickOptions:{ prefix: '$' }
+                            }
+                        },
+                        series: [{renderer:$.jqplot.OHLCRenderer, rendererOptions:{candleStick:true}}],
+                        cursor:{
+                            show:true,
+                            zoom:true,
+                            tooltipOffset: 10,
+                            tooltipLocation: 'nw'
+                        },
+                        highlighter: {
+                            show:true,
+                            showMarker:false,
+                            tooltipAxes: 'xy',
+                            yvalues: 4,
+                            formatString:'<table class="jqplot-highlighter"> \
+                            <tr><td>date:</td><td>%s</td></tr> \
+                            <tr><td>open:</td><td>%s</td></tr> \
+                            <tr><td>hi:</td><td>%s</td></tr> \
+                            <tr><td>low:</td><td>%s</td></tr> \
+                            <tr><td>close:</td><td>%s</td></tr></table>'
+                        }
+                    });
+                },
+
                 ha: function(symbol, fn){
                     fn = fn || function(){};
 
@@ -69,28 +146,8 @@
                 sma: function(symbol, period, fn){
                     fn = fn || function(){};
 
-                    // todo(rob) move this somewhere else
-                    function simple_moving_averager(period) {
-                        var nums = [];
-                        return function(num) {
-                            nums.push(num);
-                            if (nums.length > period){
-                                nums.splice(0,1);  // remove the first element of the array
-                            }
-                            var sum = 0;
-                            for (var i in nums){
-                                sum += nums[i];
-                            }
-                            var n = period;
-                            if (nums.length < period){
-                                n = nums.length;
-                            }
-                            return(sum/n);
-                        };
-                    }
-
                     // setup the sma
-                    var sma = simple_moving_averager(period),
+                    var sma = components.yahoo_finance.chart._simple_moving_averager(period),
                         d,
                         ret = [];
 
@@ -104,6 +161,35 @@
                         fn(ret);
                     });
 
+                },
+
+                sma_bars: function(symbol, period, fn){
+                    fn = fn || function(){};
+
+                    // setup the sma
+                    var _sma = components.yahoo_finance.chart._simple_moving_averager,
+                        smaO = _sma(period),
+                        smaH = _sma(period),
+                        smaL = _sma(period),
+                        smaC = _sma(period),
+                        d,
+                        ret = [];
+
+                    // get the symbol data
+                    store.stocks.get(symbol, function(data){
+                        for (var i = data.length - 1; i >= 0; i--) {
+                            d = data[i];
+                            ret.push({
+                                date: d.date,
+                                open: smaO(d.open),
+                                high: smaH(d.high),
+                                low: smaL(d.low),
+                                close: smaC(d.adj_close)
+                            });
+                        }
+
+                        fn(ret);
+                    });
                 },
 
                 trend: function(symbol, fn){
@@ -125,6 +211,16 @@
             },
 
             test: {
+                ha: function(symbol){
+                    components.yahoo_finance.chart.ha(symbol, function(data){
+                        components.yahoo_finance.chart.plot('chartdiv', data.splice(data.length-40, data.length));
+                    });
+                },
+                sma_bars: function(symbol, period){
+                    components.yahoo_finance.chart.sma_bars(symbol, period, function(data){
+                        components.yahoo_finance.chart.plot('chartdiv', data.splice(data.length-40, data.length));
+                    });
+                },
                 trend: function(){
                     components.yahoo_finance.chart.trend('spy', function(data){
                         data.forEach(function(val){
