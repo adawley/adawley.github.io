@@ -32,7 +32,14 @@
         </div>
     </div>
 
-    <div id="chartdiv" style="height:400px;width:1300px; "></div>
+    <div class="component-block">
+        <div id="yahoo_finance-charting">
+            <input id="yahoo_finance-charting-symbol" />
+        </div>
+        <div id="chartdiv" style="height:400px;width:1300px; "></div>
+    </div>
+
+
 
     <script type="text/javascript" src="src/stores.js"></script>
     <script type="text/javascript" src="src/services.js"></script>
@@ -84,6 +91,7 @@
         setTimeout(function() {
             components.hacker_news.topStories($('#hacker_news-topStories'));
             components.finviz.charts($('#finviz-charts'));
+            components.yahoo_finance.charting($('#yahoo_finance-charting'));
         }, 1);
     </script>
 

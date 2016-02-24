@@ -56,6 +56,14 @@
 
         yahoo_finance: {
 
+            charting: function(el){
+                var symbolBox = $('#yahoo_finance-charting-symbol');
+
+                symbolBox.css('display','block');
+                symbolBox.val('spy');
+                console.log('charting called');
+            },
+
             chart: {
 
                 _simple_moving_averager: function (period) {
@@ -78,11 +86,17 @@
                 },
 
                 plot: function(divId, data){
-                    var ohlc = [],
+                    var options = {},
+                        ohlc = [],
                         ticks = [],
                         sma = [],
                         sma5 = components.yahoo_finance.chart._simple_moving_averager(5),
                         d, i, date;
+
+                    if(typeof divId === 'string'){
+                        options.divId = divId;
+                        options.title = 'Chart';
+                    }
 
                     console.log(data);
 
@@ -101,8 +115,8 @@
                         sma.push([i,sma5(d.close)]);
                     }
 
-                    $.jqplot('chartdiv',[ohlc, sma],{
-                        title: 'Chart',
+                    $.jqplot(options.divId,[ohlc, sma],{
+                        title: options.title,
                         axesDefaults:{},
                         axes: {
                             xaxis: {
