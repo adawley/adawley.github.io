@@ -57,11 +57,10 @@
         yahoo_finance: {
 
             charting: function(el){
-                var symbolBox = $('#yahoo_finance-charting-symbol');
+                var symbolBox = el.find('#symbol');
 
                 symbolBox.css('display','block');
                 symbolBox.val('spy');
-                console.log('charting called');
             },
 
             chart: {
@@ -222,26 +221,6 @@
                 yf.query(symbol, function(data){
                     console.log('historical_data: '+data);
                 });
-            },
-
-            test: {
-                ha: function(symbol){
-                    components.yahoo_finance.chart.ha(symbol, function(data){
-                        components.yahoo_finance.chart.plot('chartdiv', data.splice(data.length-40, data.length));
-                    });
-                },
-                sma_bars: function(symbol, period){
-                    components.yahoo_finance.chart.sma_bars(symbol, period, function(data){
-                        components.yahoo_finance.chart.plot('chartdiv', data.splice(data.length-40, data.length));
-                    });
-                },
-                trend: function(){
-                    components.yahoo_finance.chart.trend('spy', function(data){
-                        data.forEach(function(val){
-                            console.log(new Date(val.date)+': '+val.trend);
-                        });
-                    });
-                }
             }
         }
 
