@@ -35,33 +35,100 @@
             }
         },
 
-        charting:{
-            candlesticks: function(data){
-                var ret = [], d, retIndx, haOpen, haHigh, haLow, haClose;
+        charts:{
+            studies: {
+                _simple_moving_averager: function (period) {
+                    var nums = [];
+                    return function(num) {
+                        nums.push(num);
+                        if (nums.length > period){
+                            nums.splice(0,1);  // remove the first element of the array
+                        }
+                        var sum = 0;
+                        for (var i in nums){
+                            sum += nums[i];
+                        }
+                        var n = period;
+                        if (nums.length < period){
+                            n = nums.length;
+                        }
+                        return(sum/n);
+                    };
+                },
+                sma: function(period, data, fn){
+                    fn = fn || function(){};
 
-                for (var i = data.length - 1; i >= 0; i--) {
-                    d = data[i];
-                    retIndx = ret.length;
+                    // setup the sma
+                    var sma = services.charts.studies._simple_moving_averager(period),
+                        d,
+                        ret = [];
 
-                    if(d.close !== d.adj_close){
-                        console.log('close mismatch: '+(new Date(d.date)),d);
+                    for (var i = data.length - 1; i >= 0; i--) {
+                        d = data[i];
+                        ret.push({date: d.date, sma: sma(d.adj_close)});
                     }
 
-                    haClose = (d.open + d.high + d.low + d.close) / 4;
-                    haOpen = retIndx > 1 ? (ret[retIndx-1].open + ret[retIndx-1].close) / 2 : d.open;
-                    haHigh = Math.max(d.high, haOpen, haClose);
-                    haLow = Math.min(d.low, haOpen, haClose);
+                    fn(ret);
+                },
+                sma_bars: function(symbol, period, fn){
+                    fn = fn || function(){};
 
-                    ret.push({
-                        close: haClose,
-                        high: haHigh,
-                        low: haLow,
-                        open: haOpen,
-                        date: d.date
+                    // setup the sma
+                    var _sma = services.charts.studies._simple_moving_averager,
+                        smaO = _sma(period),
+                        smaH = _sma(period),
+                        smaL = _sma(period),
+                        smaC = _sma(period),
+                        d,
+                        ret = [];
+
+                    // get the symbol data
+                    store.stocks.get(symbol, function(data){
+                        for (var i = data.length - 1; i >= 0; i--) {
+                            d = data[i];
+                            ret.push({
+                                date: d.date,
+                                open: smaO(d.open),
+                                high: smaH(d.high),
+                                low: smaL(d.low),
+                                close: smaC(d.adj_close)
+                            });
+                        }
+
+                        fn(ret);
                     });
                 }
+            },
+            style: {
+                chart_type:{
+                    heikin_ashi: function(data){
+                        var ret = [], d, retIndx, haOpen, haHigh, haLow, haClose;
 
-                return ret;
+                        for (var i = data.length - 1; i >= 0; i--) {
+                            d = data[i];
+                            retIndx = ret.length;
+
+                            if(d.close !== d.adj_close){
+                                console.log('close mismatch: '+(new Date(d.date)),d);
+                            }
+
+                            haClose = (d.open + d.high + d.low + d.close) / 4;
+                            haOpen = retIndx > 1 ? (ret[retIndx-1].open + ret[retIndx-1].close) / 2 : d.open;
+                            haHigh = Math.max(d.high, haOpen, haClose);
+                            haLow = Math.min(d.low, haOpen, haClose);
+
+                            ret.push({
+                                close: haClose,
+                                high: haHigh,
+                                low: haLow,
+                                open: haOpen,
+                                date: d.date
+                            });
+                        }
+
+                        return ret;
+                    }
+                }
             }
         },
 

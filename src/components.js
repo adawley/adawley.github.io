@@ -65,24 +65,7 @@
 
             chart: {
 
-                _simple_moving_averager: function (period) {
-                    var nums = [];
-                    return function(num) {
-                        nums.push(num);
-                        if (nums.length > period){
-                            nums.splice(0,1);  // remove the first element of the array
-                        }
-                        var sum = 0;
-                        for (var i in nums){
-                            sum += nums[i];
-                        }
-                        var n = period;
-                        if (nums.length < period){
-                            n = nums.length;
-                        }
-                        return(sum/n);
-                    };
-                },
+
 
                 plot: function(divId, data){
                     var options = {},
@@ -152,26 +135,16 @@
                     fn = fn || function(){};
 
                     store.stocks.get(symbol, function(data){
-                        fn(services.charting.candlesticks(data));
+                        fn(services.charts.style.chart_type.heikin_ashi(data));
                     });
                 },
 
                 sma: function(symbol, period, fn){
                     fn = fn || function(){};
 
-                    // setup the sma
-                    var sma = components.yahoo_finance.chart._simple_moving_averager(period),
-                        d,
-                        ret = [];
-
                     // get the symbol data
                     store.stocks.get(symbol, function(data){
-                        for (var i = data.length - 1; i >= 0; i--) {
-                            d = data[i];
-                            ret.push({date: d.date, sma: sma(d.adj_close)});
-                        }
-
-                        fn(ret);
+                        services.charts.studies.sma(period, data, fn);
                     });
 
                 },
@@ -179,29 +152,9 @@
                 sma_bars: function(symbol, period, fn){
                     fn = fn || function(){};
 
-                    // setup the sma
-                    var _sma = components.yahoo_finance.chart._simple_moving_averager,
-                        smaO = _sma(period),
-                        smaH = _sma(period),
-                        smaL = _sma(period),
-                        smaC = _sma(period),
-                        d,
-                        ret = [];
-
                     // get the symbol data
                     store.stocks.get(symbol, function(data){
-                        for (var i = data.length - 1; i >= 0; i--) {
-                            d = data[i];
-                            ret.push({
-                                date: d.date,
-                                open: smaO(d.open),
-                                high: smaH(d.high),
-                                low: smaL(d.low),
-                                close: smaC(d.adj_close)
-                            });
-                        }
-
-                        fn(ret);
+                        services.charts.studies.sma_bars(period, data, fn);
                     });
                 },
 
