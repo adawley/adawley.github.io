@@ -69,7 +69,9 @@
                         ohlc = [],
                         ticks = [],
                         sma = [],
-                        sma5 = services.charts.studies._simple_moving_averager(5),
+                        ema = [],
+                        sma5 = services.charts.studies._simple_moving_averager(5), // todo change this to not be satic
+                        ema5 = services.charts.studies._exponential_moving_averager(5), // todo this too
                         d, i, date;
 
                     if (typeof divId === 'string') {
@@ -90,13 +92,14 @@
 
                         ohlc.push([i, d.open, d.high, d.low, d.close]);
                         sma.push([i, sma5(d.close)]);
+                        ema.push([i, ema5(d.close)]);
                     }
 
                     if (ohlc.length === 0) {
                         return;
                     }
 
-                    $.jqplot(options.divId, [ohlc, sma], {
+                    $.jqplot(options.divId, [ohlc, sma, ema], {
                         title: options.title,
                         axesDefaults: {},
                         axes: {
@@ -105,7 +108,7 @@
                                 ticks: ticks
                             },
                             yaxis: {
-                                tickOptions: { prefix: '$' }
+                                tickOptions: { prefix: '$', formatString: '%.2f' }
                             }
                         },
                         series: [{ renderer: $.jqplot.OHLCRenderer, rendererOptions: { candleStick: true } }],
@@ -128,6 +131,14 @@
                             <tr><td>close:</td><td>%s</td></tr></table>'
                         }
                     });
+                },
+
+                ema: function(symbol, period, fn){
+                    fn = fn || function(){};
+                    
+                    store.stocks.get(symbol, function(data){
+                        services.charts.studies.ema(period, data, fn);
+                    });  
                 },
 
                 ha: function (symbol, fn) {

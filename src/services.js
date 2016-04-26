@@ -37,6 +37,30 @@
 
         charts: {
             studies: {
+                _exponential_moving_averager: function (period) {
+                    var multiplier = (2 / (period + 1)),
+                        ema,
+                        previousDay,
+                        nums = [];
+
+                    return function (num) {
+                        if (typeof previousDay === 'undefined') {
+                            nums.push(num);
+                            if (nums.length === period) {
+                                // (array sum) / period
+                                previousDay = nums.reduce(function (previousValue, currentValue, currentIndex, array) {
+                                    return previousValue + currentValue;
+                                }) / period;
+                            } else {
+                                return NaN;
+                            }
+                        } else {
+                            ema = (num - previousDay) * multiplier + previousDay;
+                            previousDay = ema;
+                            return ema;
+                        }
+                    };
+                },
                 _simple_moving_averager: function (period) {
                     var nums = [];
                     return function (num) {
@@ -54,6 +78,33 @@
                         }
                         return (sum / n);
                     };
+                },
+                ema: function (period, data, fn) {
+                    fn = fn || function () { };
+
+                    var ema = services.charts.studies._exponential_moving_averager(period),
+                        d,
+                        ret = [];
+
+                    for (var i = data.length - 1; i >= 0; i--) {
+                        d = data[i];
+                        ret.push({ date: d.date, ema: ema(d.adj_close) });
+                    }
+
+                    fn(ret);
+                },
+                macd: function (shortPeriod, longPeriod, signalPeriod, symbol, fn) {
+                    // TODO  
+                },
+                price: function(data, fn){
+                    var ret = [];
+                    
+                    // just reverse the raw data    
+                    for(var i = data.length -1; i >= 0; i--){
+                        ret.push(data[i]);
+                    }  
+                    
+                    fn(ret);
                 },
                 sma: function (period, data, fn) {
                     fn = fn || function () { };
@@ -189,9 +240,6 @@
                     }
                 },
                 historical_data: function (symbol, fn) {
-                    
-                    // TODO validate that the data is not already in the local store.
-                    
                     var endDate = Date.today().toString('yyyy-MM-dd'),
                         startDate = Date.today().last().year().toString('yyyy-MM-dd'),
                         query = 'select * from yahoo.finance.historicaldata where symbol = "' + symbol + '" and startDate = "' + startDate + '" and endDate = "' + endDate + '"',
@@ -204,11 +252,18 @@
                             '&callback=?'
                         ].join('');
 
-                    $.ajax({
-                        url: url,
-                        dataType: 'jsonp',
-                        success: function (callbackData) {
-                            services.yahoo.finance.callbacks.historical_data(callbackData, fn);
+                    store.stocks.get(symbol, function (data) {
+                        // TODO validate that the data is in the startDate endDate range
+                        if (data) {
+                            fn(data);
+                        } else {
+                            $.ajax({
+                                url: url,
+                                dataType: 'jsonp',
+                                success: function (callbackData) {
+                                    services.yahoo.finance.callbacks.historical_data(callbackData, fn);
+                                }
+                            });
                         }
                     });
                 },
