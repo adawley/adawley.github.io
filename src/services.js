@@ -1,4 +1,4 @@
-(function($, store) {
+(function ($, store) {
     'use strict';
 
     function getJson(url, fn) {
@@ -19,12 +19,12 @@
 
     var services = {
 
-        analytics:{
-            simple_trend: function(data, fn){
-                fn = fn || function(){};
+        analytics: {
+            simple_trend: function (data, fn) {
+                fn = fn || function () { };
                 var ret = [];
 
-                data.forEach(function(d){
+                data.forEach(function (d) {
                     ret.push({
                         date: d.date,
                         trend: ((d.open > d.close) ? -1 : 1)
@@ -35,28 +35,28 @@
             }
         },
 
-        charts:{
+        charts: {
             studies: {
                 _simple_moving_averager: function (period) {
                     var nums = [];
-                    return function(num) {
+                    return function (num) {
                         nums.push(num);
-                        if (nums.length > period){
-                            nums.splice(0,1);  // remove the first element of the array
+                        if (nums.length > period) {
+                            nums.splice(0, 1);  // remove the first element of the array
                         }
                         var sum = 0;
-                        for (var i in nums){
+                        for (var i in nums) {
                             sum += nums[i];
                         }
                         var n = period;
-                        if (nums.length < period){
+                        if (nums.length < period) {
                             n = nums.length;
                         }
-                        return(sum/n);
+                        return (sum / n);
                     };
                 },
-                sma: function(period, data, fn){
-                    fn = fn || function(){};
+                sma: function (period, data, fn) {
+                    fn = fn || function () { };
 
                     // setup the sma
                     var sma = services.charts.studies._simple_moving_averager(period),
@@ -65,13 +65,13 @@
 
                     for (var i = data.length - 1; i >= 0; i--) {
                         d = data[i];
-                        ret.push({date: d.date, sma: sma(d.adj_close)});
+                        ret.push({ date: d.date, sma: sma(d.adj_close) });
                     }
 
                     fn(ret);
                 },
-                sma_bars: function(symbol, period, fn){
-                    fn = fn || function(){};
+                sma_bars: function (symbol, period, fn) {
+                    fn = fn || function () { };
 
                     // setup the sma
                     var _sma = services.charts.studies._simple_moving_averager,
@@ -83,7 +83,8 @@
                         ret = [];
 
                     // get the symbol data
-                    store.stocks.get(symbol, function(data){
+                    store.stocks.get(symbol, function (data) {
+                        data = data || [];
                         for (var i = data.length - 1; i >= 0; i--) {
                             d = data[i];
                             ret.push({
@@ -100,20 +101,20 @@
                 }
             },
             style: {
-                chart_type:{
-                    heikin_ashi: function(data){
+                chart_type: {
+                    heikin_ashi: function (data) {
                         var ret = [], d, retIndx, haOpen, haHigh, haLow, haClose;
 
                         for (var i = data.length - 1; i >= 0; i--) {
                             d = data[i];
                             retIndx = ret.length;
 
-                            if(d.close !== d.adj_close){
-                                console.log('close mismatch: '+(new Date(d.date)),d);
+                            if (d.close !== d.adj_close) {
+                                console.log('close mismatch: ' + (new Date(d.date)), d);
                             }
 
                             haClose = (d.open + d.high + d.low + d.close) / 4;
-                            haOpen = retIndx > 1 ? (ret[retIndx-1].open + ret[retIndx-1].close) / 2 : d.open;
+                            haOpen = retIndx > 1 ? (ret[retIndx - 1].open + ret[retIndx - 1].close) / 2 : d.open;
                             haHigh = Math.max(d.high, haOpen, haClose);
                             haLow = Math.min(d.low, haOpen, haClose);
 
@@ -133,7 +134,7 @@
         },
 
         finviz: {
-            getChart: function(symbol) {
+            getChart: function (symbol) {
                 var img = document.createElement('img');
                 img.src = ['http://finviz.com/chart.ashx?t=', symbol, '&ty=c&ta=1&p=d&s=1&zzz=', (new Date()).getTime()].join('');
 
@@ -142,8 +143,8 @@
         },
 
         hacker_news: {
-            getItem: function(itemId, fn) {
-                fn = fn || function() {};
+            getItem: function (itemId, fn) {
+                fn = fn || function () { };
 
                 var url = ['https://hacker-news.firebaseio.com/v0/item/', itemId, '.json?print=pretty'].join('');
 
@@ -154,20 +155,20 @@
                 }
 
             },
-            getTopStories: function(fn) {
+            getTopStories: function (fn) {
                 getJson('https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty', fn);
             }
         },
 
         yahoo: {
             finance: {
-                callbacks:{
-                    historical_data: function(data){
+                callbacks: {
+                    historical_data: function (data, fn) {
                         var quote = data.query.results.quote,
                             symbol = quote[0].Symbol,
                             d = [];
 
-                        quote.forEach(function(val){
+                        quote.forEach(function (val) {
                             d.push({
                                 adj_close: parseFloat(val.Adj_Close),
                                 close: parseFloat(val.Close),
@@ -181,39 +182,43 @@
 
                         store.stocks.save(symbol, d);
                         console.log('yahoo.finance.callbacks.historical_data: save complete');
+                        fn(d);
                     },
-                    query: function(data){
+                    query: function (data) {
                         console.log(data.query.results);
                     }
                 },
-                historical_data: function(symbol){
+                historical_data: function (symbol, fn) {
+                    
+                    // TODO validate that the data is not already in the local store.
+                    
                     var endDate = Date.today().toString('yyyy-MM-dd'),
                         startDate = Date.today().last().year().toString('yyyy-MM-dd'),
-                        callback = 'services.yahoo.finance.callbacks.historical_data',
-                        query = 'select * from yahoo.finance.historicaldata where symbol = "'+symbol+'" and startDate = "'+startDate+'" and endDate = "'+endDate+'"',
+                        query = 'select * from yahoo.finance.historicaldata where symbol = "' + symbol + '" and startDate = "' + startDate + '" and endDate = "' + endDate + '"',
                         url = [
                             'http://query.yahooapis.com/v1/public/yql',
-                            '?q='+query,
+                            '?q=' + query,
                             '&format=json',
                             '&diagnostics=true',
                             '&env=store://datatables.org/alltableswithkeys',
-                            '&callback=' + callback
+                            '&callback=?'
                         ].join('');
 
                     $.ajax({
                         url: url,
                         dataType: 'jsonp',
-                        jsonp: 'callback',
-                        jsonpCallback: callback
+                        success: function (callbackData) {
+                            services.yahoo.finance.callbacks.historical_data(callbackData, fn);
+                        }
                     });
                 },
-                query: function(symbol, fn) {
-                    fn = fn || function() {};
+                query: function (symbol, fn) {
+                    fn = fn || function () { };
 
                     var callback = 'services.yahoo.finance.callbacks.query',
                         url = [
                             'http://query.yahooapis.com/v1/public/yql',
-                            '?q=select * from yahoo.finance.quotes where symbol="'+symbol+'"',
+                            '?q=select * from yahoo.finance.quotes where symbol="' + symbol + '"',
                             '&format=json',
                             '&diagnostics=true',
                             '&env=store://datatables.org/alltableswithkeys',
@@ -234,4 +239,4 @@
 
     window.services = services;
 
-}(window.jQuery, window.store));
+} (window.jQuery, window.store));

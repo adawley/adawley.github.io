@@ -1,9 +1,9 @@
-(function(store, services, filters, _, $) {
+(function (store, services, filters, _, $) {
     'use strict';
     var components = {
 
         finviz: {
-            charts: function(el) {
+            charts: function (el) {
                 var symbols = ['spy', 'dia', 'fb', 'vglt'],
                     fv = services.finviz,
                     symbolBox;
@@ -12,13 +12,13 @@
                     symbolBox = $(el.children().first())[0];
                     symbols = symbolBox.value.split(',');
                 } else {
-                    symbolBox = $('<input>').css('display','block');
+                    symbolBox = $('<input>').css('display', 'block');
                     symbolBox.val(symbols.join());
                 }
                 el.text(' ');
                 el.append(symbolBox);
 
-                _.each(symbols, function(symbol) {
+                _.each(symbols, function (symbol) {
                     el.append(fv.getChart(symbol));
                 });
 
@@ -26,10 +26,10 @@
         },
 
         hacker_news: {
-            topStories: function(el) {
+            topStories: function (el) {
                 var hn = services.hacker_news;
 
-                var makeLink = function(article) {
+                var makeLink = function (article) {
 
                     var url = filters.url.hostname(article.url),
                         pel = document.createElement('p');
@@ -44,7 +44,7 @@
 
                 el.text(' ');
 
-                hn.getTopStories(function(data) {
+                hn.getTopStories(function (data) {
 
                     for (var i = 0; i < 25; i++) {
 
@@ -56,36 +56,31 @@
 
         yahoo_finance: {
 
-            charting: function(el){
+            charting: function (el) {
                 var symbolBox = el.find('#symbol');
 
-                symbolBox.css('display','block');
+                symbolBox.css('display', 'block');
                 symbolBox.val('spy');
             },
 
             chart: {
-
-
-
-                plot: function(divId, data){
+                plot: function (divId, data) {
                     var options = {},
                         ohlc = [],
                         ticks = [],
                         sma = [],
-                        sma5 = components.yahoo_finance.chart._simple_moving_averager(5),
+                        sma5 = services.charts.studies._simple_moving_averager(5),
                         d, i, date;
 
-                    if(typeof divId === 'string'){
+                    if (typeof divId === 'string') {
                         options.divId = divId;
                         options.title = 'Chart';
                     }
 
-                    console.log(data);
-
                     for (i = 0; i < data.length; i++) {
                         d = data[i];
 
-                        if(i%5 === 0){
+                        if (i % 5 === 0) {
                             date = (new Date(d.date)).toString('MM/dd/yyyy');
                         } else {
                             date = '';
@@ -94,34 +89,38 @@
                         ticks.push(date);
 
                         ohlc.push([i, d.open, d.high, d.low, d.close]);
-                        sma.push([i,sma5(d.close)]);
+                        sma.push([i, sma5(d.close)]);
                     }
 
-                    $.jqplot(options.divId,[ohlc, sma],{
+                    if (ohlc.length === 0) {
+                        return;
+                    }
+
+                    $.jqplot(options.divId, [ohlc, sma], {
                         title: options.title,
-                        axesDefaults:{},
+                        axesDefaults: {},
                         axes: {
                             xaxis: {
-                                renderer:$.jqplot.CategoryAxisRenderer,
-                                ticks:ticks
+                                renderer: $.jqplot.CategoryAxisRenderer,
+                                ticks: ticks
                             },
                             yaxis: {
-                                tickOptions:{ prefix: '$' }
+                                tickOptions: { prefix: '$' }
                             }
                         },
-                        series: [{renderer:$.jqplot.OHLCRenderer, rendererOptions:{candleStick:true}}],
-                        cursor:{
-                            show:true,
-                            zoom:true,
+                        series: [{ renderer: $.jqplot.OHLCRenderer, rendererOptions: { candleStick: true } }],
+                        cursor: {
+                            show: true,
+                            zoom: true,
                             tooltipOffset: 10,
                             tooltipLocation: 'nw'
                         },
                         highlighter: {
-                            show:true,
-                            showMarker:false,
+                            show: true,
+                            showMarker: false,
                             tooltipAxes: 'xy',
                             yvalues: 4,
-                            formatString:'<table class="jqplot-highlighter"> \
+                            formatString: '<table class="jqplot-highlighter"> \
                             <tr><td>date:</td><td>%s</td></tr> \
                             <tr><td>open:</td><td>%s</td></tr> \
                             <tr><td>hi:</td><td>%s</td></tr> \
@@ -131,48 +130,45 @@
                     });
                 },
 
-                ha: function(symbol, fn){
-                    fn = fn || function(){};
+                ha: function (symbol, fn) {
+                    fn = fn || function () { };
 
-                    store.stocks.get(symbol, function(data){
+                    store.stocks.get(symbol, function (data) {
                         fn(services.charts.style.chart_type.heikin_ashi(data));
                     });
                 },
 
-                sma: function(symbol, period, fn){
-                    fn = fn || function(){};
+                sma: function (symbol, period, fn) {
+                    fn = fn || function () { };
 
                     // get the symbol data
-                    store.stocks.get(symbol, function(data){
+                    store.stocks.get(symbol, function (data) {
                         services.charts.studies.sma(period, data, fn);
                     });
 
                 },
 
-                sma_bars: function(symbol, period, fn){
-                    fn = fn || function(){};
+                sma_bars: function (symbol, period, fn) {
+                    fn = fn || function () { };
 
-                    // get the symbol data
-                    store.stocks.get(symbol, function(data){
-                        services.charts.studies.sma_bars(period, data, fn);
-                    });
+                    services.charts.studies.sma_bars(symbol, period, fn);
                 },
 
-                trend: function(symbol, fn){
-                    fn = fn || function(){};
+                trend: function (symbol, fn) {
+                    fn = fn || function () { };
 
-                    components.yahoo_finance.chart.ha(symbol, function(data){
+                    components.yahoo_finance.chart.ha(symbol, function (data) {
                         services.analytics.simple_trend(data, fn);
                     });
                 }
 
             },
 
-            historical_data: function(symbol){
+            historical_data: function (symbol) {
                 var yf = services.yahoo.finance;
 
-                yf.query(symbol, function(data){
-                    console.log('historical_data: '+data);
+                yf.query(symbol, function (data) {
+                    console.log('historical_data: ' + data);
                 });
             }
         }
@@ -181,4 +177,4 @@
 
     window.components = components;
 
-}(window.store, window.services, window.filters, window._, window.$));
+} (window.store, window.services, window.filters, window._, window.$));
