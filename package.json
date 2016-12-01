@@ -1,0 +1,27 @@
+{
+  "name": "reactify_app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.jsx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "watchify -v -d -t [ reactify --es6 ] src/main.jsx -o dist/compiled.min.js",
+    "build": "browserify -t [ reactify --es6 ] src/main.jsx | uglifyjs > dist/compiled.min.js"
+  },
+  "author": "Ron Dolly",
+  "license": "MIT",
+  "dependencies": {
+    "browserify": "^13.1.1",
+    "lawnchair": "^0.6.4",
+    "moment": "^2.15.2",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
+    "reactify": "^1.1.1",
+    "uglify-js": "^2.7.4",
+    "watchify": "^3.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.11.1",
+    "eslint-config-google": "^0.7.1"
+  }
+}
