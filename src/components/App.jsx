@@ -1,6 +1,7 @@
 var React = require('react');
 var FinvizCharts = require('./FinvizCharts.jsx');
 var HackerNewsTopStories = require('./HackerNewsTopStories.jsx');
+var YahooCharts = require('./YahooCharts.jsx');
 var App = React.createClass({
 
     getInitialState: function () {
@@ -37,6 +38,7 @@ var App = React.createClass({
                     <div className="row">
                         {route == 'FinvizCharts' && <FinvizCharts />}
                         {route == 'HackerNewsTopStories' && <HackerNewsTopStories />}
+                        {route == 'YahooCharts' && <YahooCharts />}
                     </div>
                 </div>
             </div>
