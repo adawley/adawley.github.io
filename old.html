@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Github Homepage</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js"></script>
+    <script type="text/javascript" src="http://brian.io/lawnchair/downloads/lawnchair-0.6.1.min.js"></script>
+    <script src="https://fb.me/react-0.13.3.min.js"></script>
+    <script src="https://fb.me/react-with-addons-0.13.3.min.js"></script>
+    <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.dateAxisRenderer.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.categoryAxisRenderer.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.ohlcRenderer.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.highlighter.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/plugins/jqplot.cursor.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqPlot/1.0.8/jquery.jqplot.min.css" />
+    <link rel="stylesheet" href="src/style.css" media="screen" title="no title" charset="utf-8">
+</head>
+
+<body>
+    <div class="component-block">
+        <div id="finviz-charts">
+        </div>
+    </div>
+
+    <div class="component-block">
+        <div id="hacker_news-topStories">
+        </div>
+    </div>
+
+    <div class="component-block">
+        <div id="yahoo_finance-charting">
+            <input id="yahoo_finance-charting-symbol" />
+            <button onclick="ctest.yahoo_finance.run()">Plot</button>
+        </div>
+        <div id="chartdiv" style="height:400px;width:900px; "></div>
+    </div>
+
+    <script type="text/javascript" src="src/stores.js"></script>
+    <script type="text/javascript" src="src/services.js"></script>
+    <script type="text/javascript" src="src/filters.js"></script>
+    <script type="text/javascript" src="src/components.js"></script>
+    <script type="text/javascript" src="src/test.js"></script>
+
+    <script type="text/javascript">
+        'use strict';
+        $('.component-block').each(function(indx, elem){
+            var el = $(elem),
+                shrunk = true,
+                shrunkHeight = '1.4em',
+                firstChild = el.children().first(),
+                firstId = firstChild.attr('id'),
+                dotPath = firstId.replace('-','.'),
+                titleBlock = $('<div class="component-block-title">');
+
+            $('<button>+</button>')
+                .click(function(evt){
+                    if(shrunk){
+                        el.css('height','');
+                        evt.target.innerText = '-';
+                    } else {
+                        el.css('height',shrunkHeight);
+                        evt.target.innerText = '+';
+                    }
+                    shrunk = !shrunk;
+                })
+                .appendTo(titleBlock);
+
+            $('<button>Refresh</button>')
+                .click(function(evt){
+                    console.log(dotPath);
+                    _.get(components, dotPath)($(firstChild));
+                })
+                .appendTo(titleBlock);
+
+            $('<span>'+dotPath+'</span>')
+                .appendTo(titleBlock);
+
+            el.prepend(titleBlock);
+
+            shrunkHeight = titleBlock.outerHeight();
+            el.css({
+                height: shrunkHeight,
+                overflow: 'hidden'
+            });
+        });
+        setTimeout(function() {
+            components.hacker_news.topStories($('#hacker_news-topStories'));
+            components.finviz.charts($('#finviz-charts'));
+            components.yahoo_finance.charting($('#yahoo_finance-charting'));
+        }, 1);
+    </script>
+
+</body>
+
+</html>
