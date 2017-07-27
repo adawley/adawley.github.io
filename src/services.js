@@ -18,6 +18,65 @@ function getJson(url, fn) {
 
 var services = {
 
+    alphavantage: {
+        _uri: 'http://www.alphavantage.co',
+        apiKey: '',
+        timeSeriesData: {
+
+            daily: function (symbol, outputSize, fn) {
+                outputSize = outputSize || 'full'
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=TIME_SERIES_DAILY',
+                    '&symbol=', symbol,
+                    '&outputsize=', outputSize,
+                    '&apikey=', services.alphavantage.apiKey
+                ].join('');
+
+                getJson(url, fn);
+            },
+
+            intraday: function (symbol, interval, outputSize, fn) {
+                interval = interval || '1min';
+                outputSize = outputSize || 'compact'
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=TIME_SERIES_INTRADAY',
+                    '&symbol=', symbol,
+                    '&interval=1min',
+                    '&outputsize=', outputSize,
+                    '&apikey=', services.alphavantage.apiKey
+                ].join('');
+
+                getJson(url, fn);
+            },
+
+            monthly: function (symbol, fn) {
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=TIME_SERIES_MONTHLY',
+                    '&symbol=', symbol,
+                    '&outputsize=', outputSize,
+                    '&apikey=', services.alphavantage.apiKey
+                ].join('');
+
+                getJson(url, fn);
+            },
+
+            weekly: function (symbol, fn) {
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=TIME_SERIES_WEEKLY',
+                    '&symbol=', symbol,
+                    '&outputsize=', outputSize,
+                    '&apikey=', services.alphavantage.apiKey
+                ].join('');
+
+                getJson(url, fn);
+            }
+        }
+    },
+
     analytics: {
         simple_trend: function (data, fn) {
             fn = fn || function () { };
