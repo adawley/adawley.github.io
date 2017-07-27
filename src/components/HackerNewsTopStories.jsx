@@ -37,7 +37,7 @@ var HackerNewsTopStories = React.createClass({
                         <div key={article.id} style={{ marginTop: '0.5em' }}>
                             <a href={article.url} target="_blank" style={{ fontFamily: 'monospace', lineHeight: '0.8em' }} className='d-block'>{article.title}</a>
 
-                            <small style={{ lineHeight: '0.3em' }}>({url}) | <a href={"https://news.ycombinator.com/item?id=" + article.id} target="_blank">{article.descendants}comments</a></small>
+                            <small style={{ lineHeight: '0.3em' }}>({url}) | <a href={"https://news.ycombinator.com/item?id=" + article.id} target="_blank">{article.descendants} comments</a></small>
                         </div>
                     );
                 })}
