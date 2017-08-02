@@ -7,7 +7,7 @@ var App = React.createClass({
 
     getInitialState: function () {
         return {
-            route: ''
+            route: window.location.hash.substring(1)
         };
     },
 
