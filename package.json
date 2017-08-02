@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "watchify -v -d -t [ reactify --es6 ] src/main.jsx -o dist/compiled.min.js",
-    "build": "browserify -t [ reactify --es6 ] src/main.jsx | uglifyjs > dist/compiled.min.js && cp node_modules\\bootstrap\\dist\\css\\bootstrap.min.css dist\\libs.min.css && cp node_modules\\jquery\\dist\\jquery.min.js + node_modules\\tether\\dist\\js\\tether.min.js + node_modules\\bootstrap\\dist\\js\\bootstrap.min.js dist\\libs.min.js && echo. >> dist\\libs.min.js"
+    "build_win": "browserify -t [ reactify --es6 ] src/main.jsx | uglifyjs > dist/compiled.min.js && cp node_modules\\bootstrap\\dist\\css\\bootstrap.min.css dist\\libs.min.css && cp node_modules\\jquery\\dist\\jquery.min.js + node_modules\\tether\\dist\\js\\tether.min.js + node_modules\\bootstrap\\dist\\js\\bootstrap.min.js dist\\libs.min.js && echo. >> dist\\libs.min.js",
+    "build_nix": "browserify -t [ reactify --es6 ] src/main.jsx | uglifyjs > dist/compiled.min.js && cp node_modules/bootstrap/dist/css/bootstrap.min.css dist/libs.min.css && cp node_modules/jquery/dist/jquery.min.js + node_modules/tether/dist/js/tether.min.js + node_modules/bootstrap/dist/js/bootstrap.min.js dist/libs.min.js && echo. >> dist/libs.min.js",
+    "build_light": "browserify -t [ reactify --es6 ] src/main.jsx | uglifyjs > dist/compiled.min.js && cat node_modules/jquery/dist/jquery.min.js > dist/libs.min.js && cat node_modules/tether/dist/js/tether.min.js >> dist/libs.min.js"
   },
   "author": "Ron Dolly",
   "license": "MIT",
