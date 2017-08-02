@@ -1,5 +1,24 @@
 var Lawnchair = require('Lawnchair');
 var store = {
+    state: {
+        _db: new Lawnchair({ adapter: 'dom', name: 'app', record: 'state' }, function () { }),
+        get: function (componentName, fn) {
+            fn = fn || function () { };
+            store.state._db.get(componentName, function (data) {
+                if (data) {
+                    fn(data.val);
+                } else {
+                    fn(data);
+                }
+            });
+        },
+        set: function (componentName, state, fn) {
+            store.state._db.save({
+                key: componentName,
+                val: state
+            }, fn);
+        }
+    },
     stocks: {
         _db: new Lawnchair({ adapter: 'dom', name: 'stocks', record: 'stock' }, function () { }),
         _index: {},
