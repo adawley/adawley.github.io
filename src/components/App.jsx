@@ -28,7 +28,7 @@ var App = React.createClass({
                             <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'FinvizCharts')}>Finance</a>
                             <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'HackerNewsTopStories')}>Stories</a>
                             <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'YahooCharts')}>Charts</a>
-                            <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'GoneFishing')}>Fishing</a>
+                            <a className="nav-item nav-link" href="#Portfolio" onClick={this.trigger.bind(null, 'Portfolio')}>Portfolio</a>
                             <a className="nav-item nav-link" href="#">Help</a>
                         </nav>
                         <form className="float-xs-right">
@@ -41,7 +41,7 @@ var App = React.createClass({
                         {route == 'FinvizCharts' && <FinvizCharts />}
                         {route == 'HackerNewsTopStories' && <HackerNewsTopStories />}
                         {route == 'YahooCharts' && <YahooCharts />}
-                        {route == 'GoneFishing' && <GoneFishing />}
+                        {route == 'Portfolio' && <GoneFishing />}
                     </div>
                 </div>
             </div>
