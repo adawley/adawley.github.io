@@ -1,6 +1,10 @@
 var store = require('./store');
 
 function getJson(url, fn) {
+    if (!fn || typeof fn !== 'function') {
+        console.error("No callback defined.  Cancelling request.");
+        return;
+    }
     var httpRequest = new XMLHttpRequest();
     httpRequest.onreadystatechange = function handleStateChange() {
         if (httpRequest.readyState === 4) {
@@ -21,6 +25,14 @@ var services = {
     alphavantage: {
         _uri: 'http://www.alphavantage.co',
         apiKey: '',
+        getApiKey: function(){
+            var apiKey = services.alphavantage.apiKey;
+            if(!apiKey){
+                throw 'API Key is undefined';
+            }
+
+            return apiKey;
+        },
         timeSeriesData: {
 
             daily: function (symbol, outputSize, fn) {
@@ -30,14 +42,14 @@ var services = {
                     '?function=TIME_SERIES_DAILY',
                     '&symbol=', symbol,
                     '&outputsize=', outputSize,
-                    '&apikey=', services.alphavantage.apiKey
+                    '&apikey=', services.alphavantage.getApiKey()
                 ].join('');
 
                 getJson(url, fn);
             },
 
             intraday: function (symbol, interval, outputSize, fn) {
-                interval = interval || '1min';
+                interval = interval || '1min'; //  The following values are supported: 1min, 5min, 15min, 30min, 60min
                 outputSize = outputSize || 'compact'
                 var url = [
                     services.alphavantage._uri, '/query',
@@ -45,7 +57,7 @@ var services = {
                     '&symbol=', symbol,
                     '&interval=1min',
                     '&outputsize=', outputSize,
-                    '&apikey=', services.alphavantage.apiKey
+                    '&apikey=', services.alphavantage.getApiKey()
                 ].join('');
 
                 getJson(url, fn);
@@ -56,8 +68,7 @@ var services = {
                     services.alphavantage._uri, '/query',
                     '?function=TIME_SERIES_MONTHLY',
                     '&symbol=', symbol,
-                    '&outputsize=', outputSize,
-                    '&apikey=', services.alphavantage.apiKey
+                    '&apikey=', services.alphavantage.getApiKey()
                 ].join('');
 
                 getJson(url, fn);
@@ -68,8 +79,124 @@ var services = {
                     services.alphavantage._uri, '/query',
                     '?function=TIME_SERIES_WEEKLY',
                     '&symbol=', symbol,
-                    '&outputsize=', outputSize,
-                    '&apikey=', services.alphavantage.apiKey
+                    '&apikey=', services.alphavantage.getApiKey()
+                ].join('');
+
+                getJson(url, fn);
+            }
+        },
+
+        technicalIndicators: {
+
+            bbands: function (symbol, interval, time_period, series_type, nbdevup, nbdevdn, matype, fn) {
+
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=BBANDS',
+                    '&symbol=', symbol,
+                    '&interval=', interval,         // The following values are supported: 1min, 5min, 15min, 30min, 60min, daily, weekly, monthly
+                    '&time_period=', time_period,   // Positive integers are accepted (e.g., time_period=60, time_period=200)
+                    '&series_type=', series_type,   // Four types are supported: close, open, high, low
+                    '&nbdevup=', nbdevup,   // Positive integers are accepted. By default, nbdevup=2.
+                    '&nbdevdn=', nbdevdn,   //  Positive integers are accepted. By default, nbdevdn=2.
+
+                    /* Moving average type of the time series. 
+                        By default, matype=0. Integers 0 - 8 are accepted with the following mappings. 
+                            0 = Simple Moving Average (SMA), 
+                            1 = Exponential Moving Average (EMA), 
+                            2 = Weighted Moving Average (WMA), 
+                            3 = Double Exponential Moving Average (DEMA), 
+                            4 = Triple Exponential Moving Average (TEMA), 
+                            5 = Triangular Moving Average (TRIMA), 
+                            6 = T3 Moving Average, 
+                            7 = Kaufman Adaptive Moving Average (KAMA), 
+                            8 = MESA Adaptive Moving Average (MAMA).
+                    */
+                    '&matype=', matype,
+
+                    '&apikey=', services.alphavantage.getApiKey()
+                ].join('');
+
+                getJson(url, fn);
+            },
+
+            bbands_2_2_sma: function (symbol, interval, time_period, series_type, fn) {
+                services.alphavantage.technicalIndicators.bbands(symbol, interval, time_period, series_type, 2, 2, 0, fn);
+            },
+
+            ema: function (symbol, interval, time_period, series_type, fn) {
+
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=EMA',
+                    '&symbol=', symbol,
+                    '&interval=', interval,         // The following values are supported: 1min, 5min, 15min, 30min, 60min, daily, weekly, monthly
+                    '&time_period=', time_period,   // Positive integers are accepted (e.g., time_period=60, time_period=200)
+                    '&series_type=', series_type,   // Four types are supported: close, open, high, low
+                    '&apikey=', services.alphavantage.getApiKey()
+                ].join('');
+
+                getJson(url, fn);
+            },
+
+            macd: function (symbol, interval, series_type, fast_period, slow_period, signal_period, fn) {
+
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=MACD',
+                    '&symbol=', symbol,
+                    '&interval=', interval,             // The following values are supported: 1min, 5min, 15min, 30min, 60min, daily, weekly, monthly
+                    '&fast_period=', fast_period,       // Positive integers are accepted. By default, fastperiod=12
+                    '&slow_period=', slow_period,       // Positive integers are accepted. By default, slowperiod=26
+                    '&signal_period=', signal_period,   // Positive integers are accepted. By default, signalperiod=9
+                    '&series_type=', series_type,       // Four types are supported: close, open, high, low
+                    '&apikey=', services.alphavantage.getApiKey()
+                ].join('');
+
+                getJson(url, fn);
+            },
+
+            macd_12_26_9: function (symbol, interval, series_type, fn) {
+                services.alphavantage.technicalIndicators.macd(symbol, interval, series_type, 12, 26, 9, fn);
+            },
+
+            rsi: function (symbol, interval, time_period, series_type, fn) {
+
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=RSI',
+                    '&symbol=', symbol,
+                    '&interval=', interval,         // The following values are supported: 1min, 5min, 15min, 30min, 60min, daily, weekly, monthly
+                    '&time_period=', time_period,   // Positive integers are accepted (e.g., time_period=60, time_period=200)
+                    '&series_type=', series_type,   // Four types are supported: close, open, high, low
+                    '&apikey=', services.alphavantage.getApiKey()
+                ].join('');
+
+                getJson(url, fn);
+            },
+
+            sma: function (symbol, interval, time_period, series_type, fn) {
+
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=SMA',
+                    '&symbol=', symbol,
+                    '&interval=', interval,         // The following values are supported: 1min, 5min, 15min, 30min, 60min, daily, weekly, monthly
+                    '&time_period=', time_period,   // Positive integers are accepted (e.g., time_period=60, time_period=200)
+                    '&series_type=', series_type,   // Four types are supported: close, open, high, low
+                    '&apikey=', services.alphavantage.getApiKey()
+                ].join('');
+
+                getJson(url, fn);
+            }
+        },
+
+        sectorPerformances: {
+            sector: function (fn) {
+                var url = [
+                    services.alphavantage._uri, '/query',
+                    '?function=SECTOR',
+                    '&apikey=', services.alphavantage.getApiKey()
                 ].join('');
 
                 getJson(url, fn);

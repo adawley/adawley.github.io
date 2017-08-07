@@ -1,4 +1,6 @@
 var _ = require('lodash');
+var S = require('./constants').SeriesKeyType;
+var sKeys = Object.keys(S);
 
 /**
    * Decimal adjustment of a number.
@@ -31,7 +33,50 @@ function decimalAdjust(type, value, exp) {
     return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
 }
 
+
+function DataPoint(){
+    var self = this,
+        keys = sKeys;
+
+    _.forEach(keys, function(key){
+        key = key.toLowerCase();
+        self[key] = function (val) { self[key] = val; return this; }
+    });
+}
+
 var filters = {
+
+    normalize: {
+        alphavantage: {
+            /*
+                "2017-08-02": {
+                    "1. open": "72.5500",
+                    "2. high": "72.5600",
+                    "3. low": "71.4400",
+                    "4. close": "72.2600",
+                    "5. adjusted close": "72.2600",
+                    "6. volume": "26405096",
+                    "7. dividend amount": "0.0000",
+                    "8. split coefficient": "1.0000"
+                },
+            */
+            timeSeries: function (data) {
+                if (!data) return;
+
+                var tsdata = data[Object.keys(data)[1]];
+
+                return _.map(tsdata, function(val, key){
+                    return new DataPoint()
+                        .date(key)
+                        .open(val['1. open'])
+                        .high(val['2. high'])
+                        .low(val['3. low'])
+                        .close(val['4. close'])
+                        .volume(val['5. volume'])
+                });
+            }
+        }
+    },
 
     url: {
         hostname: function (url) {

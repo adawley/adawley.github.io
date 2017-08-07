@@ -4,6 +4,7 @@ var async = require('async');
 var services = require('../services');
 var store = require('../store');
 var math = require('../filters').math;
+var normalize = require('../filters').normalize.alphavantage.timeSeries;
 
 function Allocation(allocation) {
     var self = this;
@@ -19,13 +20,14 @@ function Allocation(allocation) {
         }
     }
 }
+window.normalize = normalize;
 var GoneFishing = React.createClass({
 
     getInitialState: function () {
         return {
             apiKey: '',
             data: {},
-            updating: null,
+            updating: 0,
             allocations: [
                 new Allocation(15).symbol('vti').shares(3).shareCost(127.30),
                 new Allocation(15).symbol('vb').shares(3).shareCost(138.44),
@@ -77,6 +79,48 @@ var GoneFishing = React.createClass({
         services.alphavantage.apiKey = val;
     },
 
+    updateAllocationData: function (alloc, callback) {
+        var self = this,
+            symbol = alloc.symbol;
+
+        async.waterfall(
+            [
+
+                function getDaily(callback) {
+                    services.alphavantage.timeSeriesData.daily(symbol, 'compact', function (dailyData) {
+                        callback(null, dailyData);
+                    })
+                },
+
+                function getMonthly(dailyData, callback) {
+                    services.alphavantage.timeSeriesData.monthly(symbol, function (monthlyData) {
+                        callback(null, dailyData, monthlyData);
+                    });
+                },
+
+                function getSma(dailyData, monthlyData, callback) {
+                    services.alphavantage.technicalIndicators.sma(symbol, 'monthly', 12, 'close', function (smaMonthly12CloseData) {
+                        callback(null, dailyData, monthlyData, smaMonthly12CloseData);
+                    });
+                }
+
+            ],
+            function done(err, dailyData, monthlyData, smaMonthly12CloseData) {
+                var sdata = self.state.data;
+
+                sdata[symbol] = {
+                    daily: dailyData,
+                    monthly: monthlyData,
+                    sma_monthly_12_close: smaMonthly12CloseData
+                };
+
+                if (typeof callback === 'function') {
+                    callback(sdata);
+                }
+            }
+        );
+    },
+
     onControlClick: function (evt) {
         var self = this,
             name = evt.target.name,
@@ -84,23 +128,24 @@ var GoneFishing = React.createClass({
 
         if (name === 'apiUpdate') {
             if (this.state.updating) return;
-            this.setState({ updating: this.state.allocations.length });
+
             services.alphavantage.apiKey = this.state.apiKey;
+
+            this.setState({ updating: this.state.allocations.length });
+
             async.map(
                 this.state.allocations,
 
-                function (alloc, callback) {
-                    var symbol = alloc.symbol;
-                    services.alphavantage.timeSeriesData.daily(symbol, 'compact', function (data) {
-                        var sdata = self.state.data;
-                        sdata[symbol] = data;
+                (alloc, callback) => {
+
+                    self.updateAllocationData(alloc, (sdata) => {
                         self.setState({ updating: self.state.updating - 1, data: sdata }, self.cacheState);
-                        callback();
                     });
+
                 },
 
                 function done() {
-                    self.setState({ updating: false });
+                    self.setState({ updating: 0 });
                 }
             );
         } else if (name === 'apiClear') {
@@ -111,59 +156,105 @@ var GoneFishing = React.createClass({
     getLatest: function (alloc, attr) {
         if (!alloc) return;
 
-        var sdata = this.state.data[alloc.symbol];
-        if (!sdata) return;
+        var data,
+            key;
 
-        var tsdata = sdata['Time Series (Daily)'],
-            key = _.max(Object.keys(tsdata));
+        try {
+            if (attr.startsWith('daily_')) {
+                key = attr.substring('daily_'.length);
+                data = normalize(this.state.data[alloc.symbol].daily)[0];
+            } else if (attr.startsWith('monthly_')) {
+                key = attr.substring('monthly_'.length);
+                data = normalize(this.state.data[alloc.symbol].monthly)[0];
+            } else if (attr === 'smaM12C') {
+                var tadata = this.state.data[alloc.symbol].sma_monthly_12_close;
+                data = tadata[Object.keys(tadata)[1]];
+            }
+        } catch (e) {
+
+        }
+
+        if (!data) return;
 
         switch (attr) {
-            case 'close':
-                return tsdata[key]['4. close'];
-            case 'open':
-                return tsdata[key]['1. open'];
-            case 'timestamp':
-                return key;
+            case 'smaM12C':
+                key = Object.keys(data)[0];
+
+                return data[key]['SMA'];
+            default:
+                return data[key];
         }
+    },
+
+    getTrend: function (alloc, attr) {
+        var data,
+            count,
+            ret = [];
+
+        try {
+            if (attr === 'fiveDay') {
+                count = 5;
+                data = normalize(this.state.data[alloc.symbol].daily);
+            } else if (attr === 'fiveMonth') {
+                count = 5;
+                data = normalize(this.state.data[alloc.symbol].monthly);
+            } else if (attr === 'twelveMonth') {
+                count = 12;
+                data = normalize(this.state.data[alloc.symbol].monthly);
+            }
+        } catch (e) {
+
+        }
+
+        if (!data) return;
+
+        for (var i = (count - 1); i >= 0; i--) {
+            var day = data[i];
+            if (!day) {
+                ret.push(<span key={i}>_</span>);
+            } else {
+                var color = (day.close > day.open) ? 'text-success' : 'text-danger';
+
+                ret.push(<span className={color} key={i}>█</span>);
+            }
+        }
+        return ret;
     },
 
     getPnL: function (alloc, attr) {
+        if (!alloc) return;
+
+        var data;
+
+        try {
+            data = normalize(this.state.data[alloc.symbol].daily)[0];
+        } catch (e) {
+
+        }
+
+        if (!data) return;
+
         switch (attr) {
             case 'open':
-                return (this.getLatest(alloc, 'close') - alloc.shareCost);
+                return data.close - alloc.shareCost;
             case 'day':
-                return (this.getLatest(alloc, 'close') - this.getLatest(alloc, 'open'));
-        }
-    },
-
-    calcs: {
-        position: {
-            openPnL: function (alloc) {
-                return this.getPnL(alloc, 'open') * alloc.shares;
-            },
-            dayPnL: function (alloc) {
-                return this.getPnL(alloc, 'day') * alloc.shares;
-            }
-
-        },
-        portfolio: {
-
+                return data.close - data.open;
         }
     },
 
     render: function () {
         var self = this,
-            calcs = this.calcs,
             getLatest = this.getLatest,
+            getTrend = this.getTrend,
             getPnL = this.getPnL;
 
         return (
             <div>
                 <div className='form-inline' style={{ margin: '1em 0', }}>
                     <input type="text" className="form-control" placeholder="API Key" value={this.state.apiKey} onChange={this.onApiKeyChange} style={{ margin: '0 1em' }} />
-                    <button className='btn btn-primary' onClick={this.onControlClick} name='apiUpdate' style={{ margin: '0 1em 0 0' }} disabled={this.state.updating}>Update {this.state.updating}</button>
+                    <button className='btn btn-primary' onClick={this.onControlClick} name='apiUpdate' style={{ margin: '0 1em 0 0' }} disabled={this.state.updating}>{(this.state.updating) ? <span>Updating {this.state.updating}</span> : 'Update'} </button>
                     <button className='btn btn-default' onClick={this.onControlClick} name='apiClear' style={{ margin: '0 1em 0 0' }}>Clear</button>
-                    <span>Last Update: {_.max(_.map(this.state.allocations, function (alloc) { return getLatest(alloc, 'timestamp'); }))}</span>
+                    <span>Last Update: {_.max(_.map(this.state.allocations, function (alloc) { return getLatest(alloc, 'daily_date'); }))}</span>
                 </div>
                 <table className='table table-hover table-condensed'>
                     <thead>
@@ -174,12 +265,18 @@ var GoneFishing = React.createClass({
                             <th>Shares</th>
                             <th>Position Cost</th>
                             <th>Mark</th>
+                            <th>12 Mo. SMA</th>
+                            <th>12 Mo. Trend</th>
                             <th>P/L Open</th>
                             <th>P/L Day</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {_.map(this.state.allocations, function (alloc) {
+                            var close = getLatest(alloc, 'daily_close'),
+                                sma = getLatest(alloc, 'smaM12C'),
+                                twelveMonthTrend = getTrend(alloc, 'twelveMonth');
                             return (
                                 <tr key={alloc.symbol}>
                                     <td>{alloc.symbol.toUpperCase()}</td>
@@ -187,9 +284,12 @@ var GoneFishing = React.createClass({
                                     <td>{alloc.allocation}%</td>
                                     <td>{alloc.shares}</td>
                                     <td>${math.round(alloc.positionCost, -2)}</td>
-                                    <td>{getLatest(alloc, 'close')}</td>
+                                    <td>{close}</td>
+                                    <td className={(close > sma ? 'text-success' : 'text-danger')}>{sma}</td>
+                                    <td>{twelveMonthTrend}</td>
                                     <td>{math.round(getPnL(alloc, 'open') * alloc.shares, -2)}</td>
                                     <td>{math.round(getPnL(alloc, 'day') * alloc.shares, -2)}</td>
+                                    <td><span onClick={self.updateAllocationData.bind(self, alloc)}>Refresh</span></td>
                                 </tr>
                             );
                         })}
@@ -199,7 +299,9 @@ var GoneFishing = React.createClass({
                             <td></td>
                             <td>Totals:</td>
                             <td>${math.round(_.sum(_.map(this.state.allocations, function (alloc) { return alloc.positionCost; })), -2)}</td>
-                            <td>${math.round(_.sum(_.map(this.state.allocations, function (alloc) { return getLatest(alloc, 'close') * alloc.shares; })), -2)}</td>
+                            <td>${math.round(_.sum(_.map(this.state.allocations, function (alloc) { return getLatest(alloc, 'daily_close') * alloc.shares; })), -2)}</td>
+                            <td></td>
+                            <td></td>
                             <td>${math.round(_.sum(_.map(this.state.allocations, function (alloc) { return getPnL(alloc, 'open') * alloc.shares; })), -2)}</td>
                             <td>${math.round(_.sum(_.map(this.state.allocations, function (alloc) { return getPnL(alloc, 'day') * alloc.shares; })), -2)}</td>
                         </tr>

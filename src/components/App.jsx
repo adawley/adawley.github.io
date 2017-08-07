@@ -25,15 +25,11 @@ var App = React.createClass({
                     <a className="navbar-brand" href="#" onClick={this.trigger.bind(null, '')}>Sugar</a>
                     <div id="navbar">
                         <nav className="nav navbar-nav float-xs-left">
-                            <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'FinvizCharts')}>Finance</a>
+                            <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'FinvizCharts')}>Charts</a>
                             <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'HackerNewsTopStories')}>Stories</a>
-                            <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'YahooCharts')}>Charts</a>
+                            {/* <a className="nav-item nav-link" href="#" onClick={this.trigger.bind(null, 'YahooCharts')}>Charts</a> */}
                             <a className="nav-item nav-link" href="#Portfolio" onClick={this.trigger.bind(null, 'Portfolio')}>Portfolio</a>
-                            <a className="nav-item nav-link" href="#">Help</a>
                         </nav>
-                        <form className="float-xs-right">
-                            <input type="text" className="form-control" placeholder="Search..." />
-                        </form>
                     </div>
                 </nav>
                 <div className="container-fluid">
