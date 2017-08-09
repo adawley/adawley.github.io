@@ -189,7 +189,8 @@ var GoneFishing = React.createClass({
     getTrend: function (alloc, attr) {
         var data,
             count,
-            ret = [];
+            ret = [],
+            direction = 0;
 
         try {
             if (attr === 'fiveDay') {
@@ -215,9 +216,19 @@ var GoneFishing = React.createClass({
             } else {
                 var color = (day.close > day.open) ? 'text-success' : 'text-danger';
 
+                (day.close > day.open) ? direction++ : direction--;
+
                 ret.push(<span className={color} key={i}>█</span>);
             }
         }
+        if (direction > 0) {
+            ret.push(<span className='text-success' key='direction'> {direction}</span>);
+        } else if (direction < 0) {
+            ret.push(<span className='text-danger' key='direction'> {Math.abs(direction)}</span>);
+        } else {
+            ret.push(<span className='text-warning' key='direction'> {direction}</span>);
+        }
+
         return ret;
     },
 
@@ -266,7 +277,7 @@ var GoneFishing = React.createClass({
                             <th>Position Cost</th>
                             <th>Mark</th>
                             <th>12 Mo. SMA</th>
-                            <th>12 Mo. Trend</th>
+                            <th><div style={{textAlign:'center'}}>12 Mo. Trend </div></th>
                             <th>P/L Open</th>
                             <th>P/L Day</th>
                             <th>Action</th>
@@ -286,7 +297,7 @@ var GoneFishing = React.createClass({
                                     <td>${math.round(alloc.positionCost, -2)}</td>
                                     <td>{close}</td>
                                     <td className={(close > sma ? 'text-success' : 'text-danger')}>{sma}</td>
-                                    <td>{twelveMonthTrend}</td>
+                                    <td><div style={{border:'1px solid gray',paddingLeft:'0.2em',paddingBottom:'0.1em'}}>{twelveMonthTrend}</div></td>
                                     <td>{math.round(getPnL(alloc, 'open') * alloc.shares, -2)}</td>
                                     <td>{math.round(getPnL(alloc, 'day') * alloc.shares, -2)}</td>
                                     <td><span onClick={self.updateAllocationData.bind(self, alloc)}>Refresh</span></td>
